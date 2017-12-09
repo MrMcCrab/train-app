@@ -1,6 +1,7 @@
-function getCommuterTrains() {
+function getCommuterTrains(stationCode) {
 
-  var url = "https://rata.digitraffic.fi/api/v1/trains/2017-12-08";
+  var url = "https://rata.digitraffic.fi/api/v1/trains/" + getToday();
+  console.log("get " + stationCode);
 
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.open("GET", url, true);
@@ -11,19 +12,93 @@ function getCommuterTrains() {
 
       var data = JSON.parse(xmlhttp.responseText);
 
+      var table = "<h3>" + "Trains from: " + $("#dropdown").val() + "</h3>";
+      table += "<table class='table'>";
+
+      table += "<thead>";
+      table += "<tr>";
+      table += "<th>" + "Destination" + "</th>";
+      table += "<th>" + "Train" + "</th>";
+      table += "<th>" + "Track" + "</th>";
+      table += "<th>" + "Departure" + "</th>";
+      table += "</tr>";
+      table += "</thead>";
+
       for (var i = 0; i < data.length; i++) {
-        if (data[i].trainType == "HL") {
+        // if (data[i].trainType == "HL") {
           for (var j = 0; j < data[i].timeTableRows.length; j++) {
-            if (data[i].timeTableRows[j].stationShortCode == "JP") {
+            if (data[i].timeTableRows[j].stationShortCode == stationCode && data[i].timeTableRows[j].trainStopping == true && data[i].trainType == "HL" && data[i].timeTableRows[j].type == "DEPARTURE") {
               console.log(data[i]);
+
+
+                    // table += "<thead>";
+                    // table += "<tr>";
+                    // table += "<th colspan='3'>" + "Weather in: " + data.name + "</th>";
+                    // table += "</tr>";
+                    // table += "</thead>";
+
+                    table += "<tr>";
+                    table += "<td>" + getDestination(data[i].timeTableRows[data[i].timeTableRows.length-1].stationShortCode) + "</td>";
+                    // table += "<td>" + "Train: " + "</td>";
+                    table += "<td>" + data[i].commuterLineID + "</td>";
+                    // table += "</tr>";
+                    //
+                    // table += "<tr>";
+                    // table += "<td>" + "Track: " + "</td>";
+                    table += "<td>" + data[i].timeTableRows[j].commercialTrack + "</td>";
+                    // table += "</tr>";
+
+                    table += "<td>" + getTime(data[i].timeTableRows[j].scheduledTime) + "</td>";
+                    table += "</tr>";
+
             }
           }
           // console.log(data[i]);
-        }
+        // }
       }
       // console.log(data)
+      table += "</table>";
+      $("#table").html(table);
     }
   }
+}
+
+function getDestination(id){
+  for (var i = 0; i < stationList.length; i++) {
+    if (stationList[i].stationShortCode == id){
+        return stationList[i].stationName;
+    }
+  }
+}
+
+
+
+
+function getTime(time) {
+  // 2017-12-09T22:05:00.000Z
+  let hours = time.substring(11,16);
+  return hours;
+}
+
+
+
+function getToday(){
+  var year = new Date();
+  year = year.getFullYear();
+  var month = new Date();
+  month = month.getUTCMonth() + 1;
+  if (month < 10) {
+    month = "0" + month;
+  }
+  var day = new Date();
+  day = day.getUTCDate();
+  if (day < 10) {
+    day = "0" + day;
+  }
+
+  var date = year + "-" + month + "-" + day;
+  console.log(date);
+  return date;
 }
 
 
@@ -61,6 +136,8 @@ function getStationCode(){
   for(var i = 0; i < stationList.length; i++){
     if (stationList[i].stationName == input) {
       console.log(stationList[i].stationShortCode);
+      var stationCode = stationList[i].stationShortCode;
+      getCommuterTrains(stationCode);
     }
   }
 }
