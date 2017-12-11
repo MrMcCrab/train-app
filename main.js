@@ -8,11 +8,13 @@ function getCommuterTrains(stationCode) {
   xmlhttp.send();
 
   xmlhttp.onreadystatechange = function(){
+
     if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
 
+      $("select").html=("Select station");
       var data = JSON.parse(xmlhttp.responseText);
 
-      var table = "<h3>" + "Trains from: " + $("#dropdown").val() + "</h3>";
+      table = "<h3>" + "Commuter trains from " + $("#dropdown").val() + "</h3>";
       table += "<table class='table'>";
 
       table += "<thead>";
@@ -25,31 +27,18 @@ function getCommuterTrains(stationCode) {
       table += "</thead>";
 
       for (var i = 0; i < data.length; i++) {
-        // if (data[i].trainType == "HL") {
           for (var j = 0; j < data[i].timeTableRows.length; j++) {
             if (data[i].timeTableRows[j].stationShortCode == stationCode && data[i].timeTableRows[j].trainStopping == true && data[i].trainType == "HL" && data[i].timeTableRows[j].type == "DEPARTURE") {
               console.log(data[i]);
 
+                table += "<tr>";
 
-                    // table += "<thead>";
-                    // table += "<tr>";
-                    // table += "<th colspan='3'>" + "Weather in: " + data.name + "</th>";
-                    // table += "</tr>";
-                    // table += "</thead>";
+                table += "<td>" + getDestination(data[i].timeTableRows[data[i].timeTableRows.length-1].stationShortCode) + "</td>";
+                table += "<td>" + data[i].commuterLineID + "</td>";
+                table += "<td>" + data[i].timeTableRows[j].commercialTrack + "</td>";
+                table += "<td>" + getTime(data[i].timeTableRows[j].scheduledTime) + "</td>";
 
-                    table += "<tr>";
-                    table += "<td>" + getDestination(data[i].timeTableRows[data[i].timeTableRows.length-1].stationShortCode) + "</td>";
-                    // table += "<td>" + "Train: " + "</td>";
-                    table += "<td>" + data[i].commuterLineID + "</td>";
-                    // table += "</tr>";
-                    //
-                    // table += "<tr>";
-                    // table += "<td>" + "Track: " + "</td>";
-                    table += "<td>" + data[i].timeTableRows[j].commercialTrack + "</td>";
-                    // table += "</tr>";
-
-                    table += "<td>" + getTime(data[i].timeTableRows[j].scheduledTime) + "</td>";
-                    table += "</tr>";
+                table += "</tr>";
 
             }
           }
@@ -63,6 +52,8 @@ function getCommuterTrains(stationCode) {
   }
 }
 
+
+
 function getDestination(id){
   for (var i = 0; i < stationList.length; i++) {
     if (stationList[i].stationShortCode == id){
@@ -73,10 +64,18 @@ function getDestination(id){
 
 
 
+function getCurrentHour(){
+  var time = new Date();
+  var currentHour = time.toISOString();
+  currentHour = currentHour.substr(11, 5);
+  console.log(currentHour);
+}
+
+
 
 function getTime(time) {
   // 2017-12-09T22:05:00.000Z
-  let hours = time.substring(11,16);
+  let hours = time.substring(11, 16);
   return hours;
 }
 
@@ -85,11 +84,13 @@ function getTime(time) {
 function getToday(){
   var year = new Date();
   year = year.getFullYear();
+
   var month = new Date();
   month = month.getUTCMonth() + 1;
   if (month < 10) {
     month = "0" + month;
   }
+
   var day = new Date();
   day = day.getUTCDate();
   if (day < 10) {
@@ -100,6 +101,7 @@ function getToday(){
   console.log(date);
   return date;
 }
+
 
 
 function getStationList(){
@@ -115,12 +117,13 @@ function getStationList(){
       stationList = JSON.parse(xmlhttp.responseText);
 
       for (var i = 0; i < stationList.length; i++) {
-        var option = document.createElement("option");
-        option.setAttribute("value", stationList[i].stationName);
-        option.appendChild(document.createTextNode(stationList[i].stationName));
-        dropdown.appendChild(option);
+        if (stationList[i].passengerTraffic == true) {
+          var option = document.createElement("option");
+          option.setAttribute("value", stationList[i].stationName);
+          option.appendChild(document.createTextNode(stationList[i].stationName));
+          dropdown.appendChild(option);
+        }
       }
-
     }
   }
 }
